@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Review Analyzer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-4xl mx-auto p-8">
+        <h1 class="text-4xl font-bold text-gray-900 mb-8">AI-Powered Product Review Analyzer</h1>
+        
+        <!-- Submit Review Form -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-2xl font-semibold mb-4">Submit a Review</h2>
+            <form id="reviewForm">
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Product ID</label>
+                    <input type="text" id="productId" class="w-full border rounded px-3 py-2" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Rating (1-5)</label>
+                    <input type="number" id="rating" min="1" max="5" class="w-full border rounded px-3 py-2" required>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Your Review</label>
+                    <textarea id="reviewText" rows="4" class="w-full border rounded px-3 py-2" required></textarea>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">Your Name (Optional)</label>
+                    <input type="text" id="reviewerName" class="w-full border rounded px-3 py-2">
+                </div>
+                <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
+                    Submit Review
+                </button>
+            </form>
+            <div id="submitResult" class="mt-4"></div>
+        </div>
+
+        <!-- Get Analytics -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-2xl font-semibold mb-4">View Analytics</h2>
+            <div class="flex gap-2 mb-4">
+                <input type="text" id="analyticsProductId" placeholder="Enter Product ID" class="flex-1 border rounded px-3 py-2">
+                <button onclick="getAnalytics()" class="bg-green-600 text-white px-6 py-2 rounded hover:bg-green-700">
+                    Get Analytics
+                </button>
+            </div>
+            <div id="analyticsResult"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://api-gateway-ctvodfvqoq-uc.a.run.app'; // Replace with your actual URL
+
+        document.getElementById('reviewForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const review = {
+                productId: document.getElementById('productId').value,
+                rating: parseInt(document.getElementById('rating').value),
+                reviewText: document.getElementById('reviewText').value,
+                reviewerName: document.getElementById('reviewerName').value || undefined
+            };
+
+            try {
+                const response = await fetch(`${API_URL}/api/reviews`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(review)
+                });
+                
+                const result = await response.json();
+                document.getElementById('submitResult').innerHTML = `
+                    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+                        <p><strong>Success!</strong> Review ID: ${result.reviewId}</p>
+                        <p class="text-sm">Your review is being analyzed by AI...</p>
+                    </div>
+                `;
+                
+                // Clear form
+                document.getElementById('reviewForm').reset();
+            } catch (error) {
+                document.getElementById('submitResult').innerHTML = `
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                        Error submitting review: ${error.message}
+                    </div>
+                `;
+            }
+        });
+
+        async function getAnalytics() {
+            const productId = document.getElementById('analyticsProductId').value;
+            if (!productId) return;
+
+            try {
+                const response = await fetch(`${API_URL}/api/analytics/${productId}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    document.getElementById('analyticsResult').innerHTML = `
+                        <div class="bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+                            ${data.message}
+                        </div>
+                    `;
+                    return;
+                }
+
+                document.getElementById('analyticsResult').innerHTML = `
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="bg-blue-50 p-4 rounded">
+                                <p class="text-sm text-gray-600">Total Reviews</p>
+                                <p class="text-2xl font-bold">${data.summary.totalReviews}</p>
+                            </div>
+                            <div class="bg-green-50 p-4 rounded">
+                                <p class="text-sm text-gray-600">Positive</p>
+                                <p class="text-2xl font-bold">${data.sentimentTrend.positivePercentage}%</p>
+                            </div>
+                            <div class="bg-red-50 p-4 rounded">
+                                <p class="text-sm text-gray-600">Negative</p>
+                                <p class="text-2xl font-bold">${data.sentimentTrend.negativePercentage}%</p>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h3 class="font-semibold mb-2">Top Topics</h3>
+                            <div class="flex flex-wrap gap-2">
+                                ${data.topTopics.map(t => `
+                                    <span class="bg-gray-200 px-3 py-1 rounded-full text-sm">
+                                        ${t.topic} (${t.count})
+                                    </span>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <div>
+                            <h3 class="font-semibold mb-2">Recent Insights</h3>
+                            <ul class="list-disc list-inside space-y-1">
+                                ${data.recentInsights.slice(0, 5).map(i => `<li class="text-sm">${i}</li>`).join('')}
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h3 class="font-semibold mb-2">Recent Reviews</h3>
+                            ${data.recentReviews.map(r => `
+                                <div class="border-b py-3">
+                                    <div class="flex justify-between items-start mb-1">
+                                        <span class="font-semibold ${r.sentiment === 'positive' ? 'text-green-600' : r.sentiment === 'negative' ? 'text-red-600' : 'text-gray-600'}">
+                                            ${r.sentiment.toUpperCase()} (${r.sentimentScore}/100)
+                                        </span>
+                                        <span class="text-sm text-gray-500">${new Date(r.analyzedAt).toLocaleDateString()}</span>
+                                    </div>
+                                    <p class="text-sm mb-2">${r.summary}</p>
+                                    <div class="flex flex-wrap gap-1">
+                                        ${r.keyTopics.map(t => `<span class="text-xs bg-blue-100 px-2 py-1 rounded">${t}</span>`).join('')}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('analyticsResult').innerHTML = `
+                    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                        Error: ${error.message}
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

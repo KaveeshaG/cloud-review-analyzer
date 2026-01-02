@@ -1,0 +1,69 @@
+{
+    "displayName": "Review Analyzer Dashboard",
+    "dashboardFilters": [],
+    "mosaicLayout": {
+      "columns": 12,
+      "tiles": [
+        {
+          "width": 6,
+          "height": 4,
+          "widget": {
+            "title": "Request Rate by Service",
+            "xyChart": {
+              "dataSets": [{
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "resource.type=\"cloud_run_revision\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_RATE"
+                    }
+                  }
+                }
+              }]
+            }
+          }
+        },
+        {
+          "width": 6,
+          "height": 4,
+          "widget": {
+            "title": "AI Analysis Processing Time",
+            "xyChart": {
+              "dataSets": [{
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "resource.type=\"cloud_run_revision\" AND resource.labels.service_name=\"ai-analysis\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_MEAN"
+                    }
+                  }
+                }
+              }]
+            }
+          }
+        },
+        {
+          "width": 12,
+          "height": 4,
+          "widget": {
+            "title": "Error Rate",
+            "xyChart": {
+              "dataSets": [{
+                "timeSeriesQuery": {
+                  "timeSeriesFilter": {
+                    "filter": "severity=\"ERROR\"",
+                    "aggregation": {
+                      "alignmentPeriod": "60s",
+                      "perSeriesAligner": "ALIGN_RATE"
+                    }
+                  }
+                }
+              }]
+            }
+          }
+        }
+      ]
+    }
+  }

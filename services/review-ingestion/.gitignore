@@ -1,0 +1,29 @@
+# Ignore node modules
+node_modules/
+
+# Ignore environment variable files
+.env
+.env.*
+
+# Ignore build artifacts
+dist/
+build/
+
+# Ignore logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ignore local firestore emulator data
+firestore-emulator-data/
+
+# Ignore OS-specific files
+.DS_Store
+Thumbs.db
+
+# Ignore TypeScript build output
+*.tsbuildinfo
+
+# Ignore IDE files
+.vscode/
+.idea/
